@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <!-- 부트스트랩 CSS only -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
+  <!-- fontawesome 아이콘 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+  <!-- 제이쿼리 -->
+  <script src="https://code.jquery.com/jquery-3.6.1.min.js" integrity="sha256-o88AwQnZB+VDvE9tvIXrMQaPlFFSUTR+nldQm1LuPXQ=" crossorigin="anonymous"></script>
+  <!-- css파일 -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/common.css">
+  <!-- <link rel="stylesheet" href="css/address.css"> -->
+<style>
+  .customoverlay {position:relative;bottom:85px;border-radius:6px;border: 1px solid #ccc;border-bottom:2px solid #ddd;float:left;}
+  .customoverlay:nth-of-type(n) {border:0; box-shadow:0px 1px 2px #888;}
+  .customoverlay a {display:block;text-decoration:none;color:#000;text-align:center;border-radius:6px;font-size:14px;font-weight:bold;overflow:hidden;background: #d95050;background: #d95050 url(https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/arrow_white.png) no-repeat right 14px center;}
+  .customoverlay .title {display:block;text-align:center;background:#fff;margin-right:35px;padding:10px 15px;font-size:14px;font-weight:bold;}
+  .customoverlay:after {content:'';position:absolute;margin-left:-12px;left:50%;bottom:-12px;width:22px;height:12px;background:url('https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/vertex_white.png')}
+</style>
+</head>
+<body>
+  <!-- 헤더 -->
+  <div id="header"></div>
+  
+
+  <!-- 내용 -->
+  <div class="box">
+    <div class="ad-box">
+      <h3 style="font-family:양진체";>배달 주소</h3>
+      <div class="ad-search">
+        <form action="#" id="address_frm" name="address_frm">
+            <div class="btn-box row-cols-lg-4 row-cols-md-3">
+                <button type="button" onclick="sample6_execDaumPostcode()" class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-magnifying-glass ad-i"></i>주소검색
+                </button>
+            </div>
+            <div class="ad-input-box">
+                <input type="hidden" id="sample6_postcode" placeholder="우편번호">
+                <input type="hidden" id="sample6_extraAddress" placeholder="참고항목">
+                <div class="mb-3 mt-2">
+                    <label for="exampleFormControlInput1" class="form-label">기본 주소</label>
+                    <input class="form-control frm-input" id="sample6_address" type="text"  placeholder="주소를 입력하세요." onclick() readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="exampleFormControlInput1"  class="form-label">상세 주소</label>
+                    <input class="form-control frm-input" type="text" id="sample6_detailAddress"  placeholder="상세주소를 입력하세요.">
+                </div>
+            </div>
+            <div style="text-align:center">
+                <button type="button" id="f-btn" class="f-btn btn btn-warning" onclick="gomenu()">배달지 설정</button>
+            </div>
+        </form>
+      </div>
+        <!-- 지도 -->
+      <div class="shop">
+        <div id="map" style="width:100%;height:500px;"></div>
+        <div class="selshop">
+          <div>
+            <h3>가산디지털단지역점</h3>
+          </div>
+          <button type="button" class="btn btn-danger">지점 선택</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <!-- 하단 -->
+  <div id="footer"></div>
+
+  <script>
+    $(function(){
+      // .load는 서버환경에서만 돌아감
+      $("#header").load('header.html');
+      $("#footer").load('footer.html');
+    });
+  </script>
+
+
+  <!-- 카카오 맵 api key-->
+  <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=c7f0c4f6a1647d299e053ccea465de6a&libraries=services"></script>
+  <script>
+
+var shops = [
+          {name : '가산디지털점', Ma : 37.4817, La : 126.8835},
+          {name : '가산비즈니스센터점', Ma : 37.4801, La : 126.881},
+          {name : '마리오아울렛점', Ma : 37.4784, La : 126.8869}
+]
+    function gomenu() {
+      
+      if($('#sample6_address').val()=='' || $('#sample6_detailAddress').val()==''){
+        alert("주소를 입력하세요.");
+      }
+      
+      else{
+        // 표시 
+        $('.shop').addClass('show');
+        document.getElementsByClassName('selshop')[0].innerHTML = '';
+
+        // 지번 or 도로명주소 -> 지도에 내 주소 표시할거임~!
+        const addr = document.getElementById('sample6_address').value
+
+        var positions = [];        
+        for(var i=0; i<shops.length; i++){
+          positions.push(new kakao.maps.LatLng(shops[i].Ma, shops[i].La));
+        }
+
+        var imageSrc = 'image/marker.png', // 마커이미지의 주소입니다    
+        imageSize = new kakao.maps.Size(55, 60), // 마커이미지의 크기입니다
+        imageOption = {offset: new kakao.maps.Point(27, 69)}; // 마커이미지의 옵션입니다. 마커의 좌표와 일치시킬 이미지 안에서의 좌표를 설정합니다.
+        // 마커의 이미지정보를 가지고 있는 마커이미지를 생성합니다
+        var markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize, imageOption);
+
+        var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
+        mapOption = {
+          center: new kakao.maps.LatLng(33.450701, 126.570667), // 지도의 중심좌표
+          level: 3 // 지도의 확대 레벨
+        };  
+
+        // 지도를 생성합니다    
+        var map = new kakao.maps.Map(mapContainer, mapOption); 
+
+        // 주소-좌표 변환 객체를 생성합니다
+        var geocoder = new kakao.maps.services.Geocoder();
+
+
+        // 주소로 좌표를 검색합니다
+        geocoder.addressSearch(addr, function(result, status) {
+
+          // 정상적으로 검색이 완료됐으면 
+          if (status === kakao.maps.services.Status.OK) {
+
+            var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+
+
+            // 결과값으로 받은 위치를 마커로 표시합니다
+            var marker = new kakao.maps.Marker({
+                map: map,
+                position: coords
+            });
+
+            // 인포윈도우로 장소에 대한 설명을 표시합니다
+            var infowindow = new kakao.maps.InfoWindow({
+                content: '<div style="width:150px;text-align:center;padding:6px 0;">내 주소</div>'
+            });
+            infowindow.open(map, marker);
+            
+            // 지도의 중심을 결과값으로 받은 위치로 이동시킵니다
+            map.setCenter(coords);
+
+            var polyLineTmp; // 직선 거리
+
+            for(var i=0, len=positions.length; i<len; i++){
+
+              polyLineTmp = new daum.maps.Polyline({
+                map: map,
+                path: [
+                  coords, positions[i]
+                ],
+                strokeWeight: 0,   
+                strokeColor: '#FFFFFF',
+                strokeOpacity: 0.8,
+                strokeStyle: 'dashed'
+              });
+              
+              // 거리
+              var distance = polyLineTmp.getLength();  
+              // console.log(distance);
+              
+              if(distance <= 5000){
+
+                var shopMarker = new kakao.maps.Marker({
+                    position: positions[i],
+                    image: markerImage // 마커이미지 설정 
+                });
+
+                // 커스텀 오버레이에 표출될 내용으로 HTML 문자열이나 document element가 가능합니다
+                var content = `
+                <div class="customoverlay"><span class="title">${shops[i].name}</span></div>;
+                `
+                var customOverlay = new kakao.maps.CustomOverlay({
+                    map: map,
+                    position: positions[i],
+                    content: content,
+                    yAnchor: 1 
+                });
+                // 마커가 지도 위에 표시되도록 설정합니다
+                shopMarker.setMap(map); 
+                $('.selshop').append(`<div style="display:flex; margin:5px; padding:5px;">
+                  <div><h4>${shops[i].name}</h4></div>
+                  <button type="button" class="btn btn-outline-danger" onclick="selmenu(${i})">지점 선택</button>
+                  </div>`);
+              }
+            }
+            if(distance >=5000){
+              document.getElementsByClassName('selshop')[0].innerHTML = `<h3>배달가능한 지역이 아닙니다.</h3>`
+            }
+          }
+
+        }); 
+      } // else문
+
+    } // gomenu() 끝
+
+    function selmenu(i){
+      // console.log(shops[i].name);
+      var shopInfo = shops[i].name;
+      var addrInfo = document.getElementById('sample6_address').value + document.getElementById('sample6_detailAddress').value;
+      // 로컬스토리지에 저장(주소, 지점)
+      window.localStorage.setItem('addrInfo', addrInfo);
+      window.localStorage.setItem('shopInfo', shopInfo);
+      location.href='menu.html';
+    }
+
+  </script>
+  
+  <script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+  <script src="js/address.js"></script>
+  <!-- 제이쿼리 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+</body>
+</html>

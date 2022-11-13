@@ -1,0 +1,72 @@
+@font-face{
+  font-family: '나눔스퀘어';
+  src: url(../font/NanumSquareR.woff);
+}
+
+@font-face {
+  font-family: '양진체';
+  src: url('https://cdn.jsdelivr.net/gh/supernovice-lab/font@0.9/yangjin.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  margin: 0px;
+  font-family: '나눔스퀘어';
+}
+
+div {
+  box-sizing: border-box;
+}
+
+/* 안티앨리어싱 */
+p, h4, h3, h2, h1, span{
+  transform: rotate(0.03deg); 
+}  
+
+.box {
+  /* border: 1px solid blue; */
+  margin: auto; 
+  width: 70%;
+  padding: 10px
+}
+
+
+.shop {
+  display: none;
+  /* border : 1px solid red; */
+}
+
+.show {
+  display: block;
+}
+
+
+.ad-box{
+  border: 6px solid #FFBC0D;
+  border-radius: 40px;
+  width: 90%;
+  min-width: 700px;
+  min-height: 580px;
+  display: block;
+  margin-left: auto; 
+  margin-right: auto;
+  padding: 40px;
+}
+
+.ad-search {
+  border-top: 3px solid #B32025;
+  padding: 10px;
+}
+
+.selshop{
+  padding-left:10px;
+}
+
+.selshop div{
+  width: 500px;
+}
+
+.selshop button{
+  width: 200px;
+}
